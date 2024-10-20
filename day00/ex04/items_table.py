@@ -11,7 +11,7 @@ def create_new_table(cursor: object, table_name: str, file_path: str):
            product_id INT,
            category_id BIGINT,
            category_code TEXT,
-           user_session TEXT
+           brand TEXT
        )
        '''
     cursor.execute(table_creation)
