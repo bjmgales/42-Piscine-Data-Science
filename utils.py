@@ -21,5 +21,6 @@ def del_all_tables():
         print(f'Deleted {table[0]}')
     connect.commit()
 
+
 if __name__ == '__main__':
     del_all_tables()
