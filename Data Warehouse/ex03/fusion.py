@@ -4,6 +4,7 @@ import psycopg2
 def table_fusion():
 
     try:
+        print("\033[95mconnection to database...")
         connection = psycopg2.connect(
             database='piscineds',
             user='bgales',
@@ -11,24 +12,13 @@ def table_fusion():
             host='localhost'
             )
         cursor = connection.cursor()
-        # cursor.execute(
-        #     '''
-        #         CREATE TABLE c_tmp AS
-        #         SELECT * FROM customers
-        #         WHERE 1 = 0
-        #     '''
-        # )
+        print('\033[92mconnection with database OK')
+        cursor.execute('BEGIN;')
+        print('\033[93mcreating backup table for customers...')
+        cursor.execute('CREATE TABLE backup_customers AS TABLE customers;')
+        print('\033[92mbackup table created with success!')
 
-        # cursor.execute(
-        #     '''
-        #         ALTER TABLE c_tmp
-        #         ADD category_id BIGINT,
-        #         ADD category_code TEXT,
-        #         ADD brand TEXT
-        #     '''
-        # )
-        # print('c_tmp table created...', cursor.fetchone())
-
+        print('\033[93mcreating ready-for-merge tmp_item table...')
         cursor.execute(
             '''
                 CREATE TEMP TABLE temp_item(
@@ -38,7 +28,6 @@ def table_fusion():
                 brand TEXT)
             '''
         )
-
         cursor.execute(
             '''
                 INSERT INTO temp_item
@@ -59,9 +48,9 @@ def table_fusion():
                     product_id;
             '''
         )
-
-        print('tmp_item table created... duplicates and uncomplete removed')
-
+        print('\033[92mtmp_item table created with success!')
+        print('\033[93mcreating c_tmp table from customers...\n\
+updating customers rows with tmp_item\'s...')
         cursor.execute(
             '''
                 CREATE TABLE c_tmp AS
@@ -87,46 +76,56 @@ def table_fusion():
                 GROUP BY customers.product_id, customers.event_type,
                     customers.event_time, customers.price,
                     customers.user_id, customers.user_session,
-                    customers.category_id, customers.category_code,
-                    customers.brand, tmp_i.category_id, tmp_i.category_code, tmp_i.brand
+                    tmp_i.category_id, tmp_i.category_code, tmp_i.brand
             '''
         )
+        print('\033[93mcounting rows from c_tmp to ensure \
+data integrity...')
+        cursor.execute('SELECT COUNT(*) FROM c_tmp;')
+        print('\033[93mcounting rows from original customers table to \
+ensure data integrity...')
+        c_tmp_count = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) FROM customers;')
+        customer_count = cursor.fetchone()[0]
+
+        if c_tmp_count != customer_count:
+            raise Exception('c_tmp data corrupted...')
+
+        print('\033[92mc_tmp table created with success!')
+
+        print('\033[91mdeleting backup_table...')
+        cursor.execute(
+            '''
+                DROP TABLE backup_customers
+            '''
+        )
+        print('\033[92mbackup_customers table deleted with success!')
+        print('\033[91mdeleting customers table...')
         cursor.execute(
             '''
                 DROP TABLE customers
             '''
         )
+        print('\033[92mcustomers table deleted with success!\n\
+\033[93mrenaming c_tmp to \"customers\"')
         cursor.execute(
             '''
                 ALTER TABLE c_tmp
                 RENAME TO customers
             '''
         )
-        print('customers table re-created with updates from item')
-
-        # cursor.execute(
-        #     '''
-        #         UPDATE customers
-        #         SET category_id = item.category_id,
-        #             category_code = item.category_code,
-        #             brand = item.brand
-        #         FROM item
-        #         WHERE customers.product_id = item.product_id
-        #     '''
-        # )
-        # cursor.execute(
-        #     '''
-        #         INSERT INTO customers (product_id, category_id, category_code,
-        #         brand)
-        #         SELECT * FROM item
-        #         LEFT JOIN customers ON customers.product_id = item.product_id
-        #         WHERE custom.product_id IS NULL
-        #     '''
-        # )
+        print('\033[93mcomitting changes...')
         connection.commit()
+        print("\033[92mcommited with success!")
 
     except Exception as e:
-        print(f'Error: {e}')
+        print(f'\033[91mError: {e}')
+        print('\033[93mrollback in progress...\033[0m')
+        connection.rollback()
+    finally:
+        print("\033[95mclosing connection with database...")
+        cursor.close()
+        connection.close()
 
 
 if __name__ == '__main__':
