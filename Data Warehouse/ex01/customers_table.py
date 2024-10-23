@@ -34,7 +34,7 @@ def create_new_table(cursor: object, table_name: str, files: list[str]):
     )
     tables = cursor.fetchall()
     for t in tables:
-        print(t)
+        print(t[0], ' table added to customer table.')
         cursor.execute(
             f'''
             INSERT INTO {table_name}
