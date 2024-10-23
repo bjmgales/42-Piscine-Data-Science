@@ -35,5 +35,7 @@ def rem_duplicate_sql_table():
     except Exception as e:
         print(f"Error : {e}")
         return
+
+
 if __name__ == '__main__':
     rem_duplicate_sql_table()
