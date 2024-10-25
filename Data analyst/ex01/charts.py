@@ -4,10 +4,52 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 
-def plot_params(df: object):
+def hide_ticks_frame(ax):
+    ax.xaxis.set_ticks_position('none')
+    ax.yaxis.set_ticks_position('none')
+    plt.gca().spines['top'].set_visible(False)
+    plt.gca().spines['right'].set_visible(False)
+    plt.gca().spines['left'].set_visible(False)
+    plt.gca().spines['bottom'].set_visible(False)
+
+
+def display_graph_two(conn: object, table_name: str):
+    print('\033[93mfetching data from database...\033[0m')
+    df = pd.read_sql_query(
+        f'''
+            SELECT TO_CHAR(event_time AT TIME ZONE 'UTC', 'YYYY-MM')
+                AS event_date,
+                SUM (price) as daily_income
+            FROM {table_name}
+            WHERE event_type = 'purchase'
+            GROUP by event_date
+        ''', conn)
 
     fig, ax = plt.subplots()
+    plt.bar(df['event_date'], df['daily_income'])
 
+    ax.set_xticklabels(['Oct', 'Nov', 'Dec', 'Jan', 'Feb'])
+
+    # remove awful scientific notation indicator from chart
+    ax.set_yticklabels([f'{v / 1e6:.1f}' for v in ax.get_yticks()])
+
+    hide_ticks_frame(ax)
+    plt.ylabel('total sales in million of ₳')
+    plt.xlabel('month')
+    plt.show()
+
+
+def display_graph_one(conn: object, table_name: str):
+    print('\033[93mfetching data from database...\033[0m')
+    df = pd.read_sql(
+        f'''
+            SELECT DATE(event_time AT TIME ZONE 'UTC') AS event_date,
+                COUNT (DISTINCT user_id) as daily_customer_count
+            FROM {table_name}
+            WHERE event_type = 'purchase'
+            GROUP by event_date
+        ''', conn)
+    fig, ax = plt.subplots()
     ax.plot(df['event_date'], df['daily_customer_count'])
     plt.ylabel('Number of customers')
 
@@ -18,12 +60,8 @@ def plot_params(df: object):
     plt.setp(ax.get_xticklabels()[-1], visible=False)
 
     # remove ticks and frame
-    ax.xaxis.set_ticks_position('none')
-    ax.yaxis.set_ticks_position('none')
-    plt.gca().spines['top'].set_visible(False)
-    plt.gca().spines['right'].set_visible(False)
-    plt.gca().spines['left'].set_visible(False)
-    plt.gca().spines['bottom'].set_visible(False)
+    hide_ticks_frame(ax)
+    plt.show()
 
 
 def fetch_data_to_graph(table_name: str):
@@ -39,18 +77,9 @@ def fetch_data_to_graph(table_name: str):
         print('\033[92mconnection with database OK')
 
         cursor.execute('BEGIN;')
-
-        print('\033[93mfetching data from database...\033[0m')
-        df = pd.read_sql(
-            f'''
-                SELECT DATE(event_time AT TIME ZONE 'UTC') AS event_date,
-                    COUNT (DISTINCT user_id) as daily_customer_count
-                FROM {table_name}
-                WHERE event_type = 'purchase'
-                GROUP by event_date
-            ''', conn)
-        plot_params(df)
-        plt.show()
+        display_graph_one(conn, table_name)
+        display_graph_two(conn, table_name)
+        # display_graph_three(conn, table_name)
 
     except Exception as e:
         print("\033[91mError: ", e)
