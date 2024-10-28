@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.ticker import FormatStrFormatter
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning, message="pandas only supports SQLAlchemy connectable")
+warnings.filterwarnings("ignore", category=UserWarning,
+                        message="pandas only supports SQLAlchemy connectable")
 
 
 def hide_ticks_frame(ax):
