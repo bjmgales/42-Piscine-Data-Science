@@ -1,5 +1,6 @@
 import psycopg2
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.ticker import FormatStrFormatter
@@ -15,6 +16,7 @@ def hide_ticks_frame(ax):
     plt.gca().spines['right'].set_visible(False)
     plt.gca().spines['left'].set_visible(False)
     plt.gca().spines['bottom'].set_visible(False)
+    plt.gca().set_facecolor('#EAEAF2')
 
 
 def display_graph_one(df: object, conn: object, table_name: str):
@@ -25,18 +27,23 @@ def display_graph_one(df: object, conn: object, table_name: str):
     # format YYYY-MM-DD into months
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
 
+    # evite la duplication des mois sur les labels axe y
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
     # remove march from labels
     plt.setp(ax.get_xticklabels()[-1], visible=False)
 
     # remove ticks and frame
     hide_ticks_frame(ax)
     print('\033[2mdisplaying graph one...\033[0m')
+    plt.grid(color='white', linestyle='-')
+    plt.xlim(df['event_date'].min(), df['event_date'].max())
     plt.show()
 
 
 def display_graph_two(df: object, conn: object, table_name: str):
     fig, ax = plt.subplots()
-    plt.bar(df['event_date'], df['daily_income'], color='#B6C5D8')
+    plt.bar(df['event_date'], df['daily_income'],
+            color='#B6C5D8', alpha=1, zorder=2)
     months_label = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb']
     hide_ticks_frame(ax)
     plt.ylabel('total sales in million of ₳')
@@ -47,25 +54,32 @@ def display_graph_two(df: object, conn: object, table_name: str):
     ax.set_yticks(ax.get_yticks())
     ax.set_yticklabels([f'{v / 1e6:.1f}' for v in ax.get_yticks()])
     print('\033[2mdisplaying graph two...\033[0m')
+    plt.grid(axis='y', color='white', linestyle='-', zorder=0)
     plt.show()
 
 
 def display_graph_three(df: object, conn: object, table_name: str):
     fig, ax = plt.subplots()
-    ax.plot(df['event_date'], df['average_spent'], color='#B6C5D8')
+    ax.plot(df['event_date'], df['average_spent'],
+            color='#B6C5D8', alpha=1, zorder=2)
     ax.set_ylim(0, df['average_spent'].max())
     plt.ylabel('average spend/customers in ₳')
 
     # format YYYY-MM-DD into months
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
     # remove march from labels
     plt.setp(ax.get_xticklabels()[-1], visible=False)
-    plt.fill_between(df['event_date'], df['average_spent'], color='#B6C5D8')
+    plt.fill_between(df['event_date'], df['average_spent'],
+                     color='#B6C5D8', alpha=1, zorder=2)
 
     # remove ticks and frame
     hide_ticks_frame(ax)
     print('\033[2mdisplaying graph three...\033[0m')
+    plt.xlim(df['event_date'].min(), df['event_date'].max())
+    plt.yticks(np.arange(0, df['average_spent'].max(), 5))
+    plt.grid(color='white', linestyle='-', zorder=0)
     plt.show()
 
 
