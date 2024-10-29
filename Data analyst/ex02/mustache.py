@@ -31,7 +31,8 @@ def display_info(result: dict, sells_arr):
     print(f"max {result['max']}")
 
 
-def display_graph_one(sells_arr: list[int]):
+def display_graphone(sells_arr: list[int]):
+    print('\033[2mdisplaying graph one...\033[0m')
     plt.figure(figsize=(10, 6))
     hide_ticks_frame()
     gray = '#5E5E5E'
@@ -50,7 +51,8 @@ def display_graph_one(sells_arr: list[int]):
     plt.show()
 
 
-def display_zoomed_graph_one(result: dict, sells_arr: list[int]):
+def display_zoomed_graphone(result: dict, sells_arr: list[int]):
+    print('\033[2mdisplaying zoomed graph one...\033[0m')
     plt.figure(figsize=(10, 6))
     hide_ticks_frame()
     gray = '#5E5E5E'
@@ -70,7 +72,8 @@ def display_zoomed_graph_one(result: dict, sells_arr: list[int]):
 
 
 def graph_one(cursor: object):
-    print('\033[93mfetching data from database for first graph...\033[0m')
+    print('\033[93mfetching data from database \
+for the two first graph...\033[0m')
     cursor.execute(
         '''
             SELECT
@@ -91,11 +94,57 @@ def graph_one(cursor: object):
             WHERE event_type = 'purchase'
         '''
     )
+    print('\033[92mdata fetched with success!\033[0m')
     sells_arr = np.array(cursor.fetchall())
 
     display_info(result, sells_arr)
-    display_graph_one(sells_arr)
-    display_zoomed_graph_one(result, sells_arr)
+    display_graphone(sells_arr)
+    display_zoomed_graphone(result, sells_arr)
+
+
+def display_graphtwo(average_basket: list[int]):
+    print('\033[2mdisplaying graph two...\033[0m')
+    plt.figure(figsize=(10, 6))
+    hide_ticks_frame()
+    gray = '#5E5E5E'
+    bplot = plt.boxplot(
+        average_basket, vert=False,
+        medianprops={'color': gray},
+        whiskerprops={'color': gray},
+        widths=1.5, whis=1,
+        patch_artist=True,
+        flierprops={'marker': 'd', 'markerfacecolor': gray,
+                    'markeredgecolor': gray})
+    for patch in bplot['boxes']:
+        patch.set_facecolor('#78AAC8')
+    plt.xlabel("average basket price per user")
+    plt.yticks([])
+    plt.xlim(-10, 120)
+    plt.grid(axis='x', color='white', linestyle='-')
+    plt.show()
+
+
+def graph_two(cursor: object):
+    print('\033[93mfetching data from database for the third graph...\033[0m')
+    cursor.execute(
+        '''
+           SELECT AVG(total_price) AS average_price
+            FROM (
+                SELECT user_id,  SUM(CASE WHEN event_type = 'cart' THEN price
+                    WHEN event_type = 'remove_from_cart' THEN -price
+                    END) AS total_price
+                FROM customers
+                GROUP BY user_id
+            ) AS _
+            WHERE total_price > 0
+            GROUP BY user_id
+            HAVING AVG(total_price) BETWEEN 0 AND 100
+
+        '''
+    )
+    print('\033[92mdata fetched with success!\033[0m')
+    average_basket = np.array(cursor.fetchall())
+    display_graphtwo(average_basket)
 
 
 def fetch_data_display_box(table_name: str):
@@ -112,6 +161,7 @@ def fetch_data_display_box(table_name: str):
 
         cursor.execute('BEGIN;')
         graph_one(cursor)
+        graph_two(cursor)
     except Exception as e:
         print("\033[91mError: ", e)
         print('\033[93mrollback in progress...\033[0m')
