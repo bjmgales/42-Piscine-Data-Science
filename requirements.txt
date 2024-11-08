@@ -2,3 +2,5 @@ psycopg2==2.9.10
 numpy==2.1.2
 matplotlib==3.9.2
 pandas==2.2.3
+flake8==7.1.1
+flake8-nb==0.5.3
