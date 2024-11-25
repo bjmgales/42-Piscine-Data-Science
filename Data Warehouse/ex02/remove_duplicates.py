@@ -6,7 +6,8 @@ def create_tmp_table_replace_old(cursor: object, connection: object):
 insertion into temp_table...')
     cursor.execute('''
        CREATE TABLE temp_table AS WITH _ AS(
-            SELECT *,
+            SELECT  event_time, event_type, product_id, price, user_id,
+                   user_session,
                LEAD(event_time) OVER
                (PARTITION BY event_type, product_id,
                price, user_id, user_session ORDER BY event_time)
@@ -53,6 +54,15 @@ insertion into temp_table...')
     cursor.execute('''
         ALTER TABLE temp_table RENAME TO customers;
     ''')
+    cursor.execute('''
+    ALTER TABLE customers
+    DROP COLUMN next_time,
+    DROP COLUMN next_type,
+    DROP COLUMN next_product,
+    DROP COLUMN next_price,
+    DROP COLUMN next_user,
+    DROP COLUMN next_session;
+''')
 
 
 def del_dup_rows():
