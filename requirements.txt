@@ -5,3 +5,4 @@ pandas==2.2.3
 flake8==7.1.1
 flake8-nb==0.5.3
 scikit-learn==1.5.2
+statsmodels==0.14.4
