@@ -7,7 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import VotingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score, accuracy_score, precision_score
+from sklearn.metrics import f1_score
 from sklearn.pipeline import Pipeline
 
 
@@ -23,6 +23,7 @@ def assertions(argv):
            "usage: 1st param path = **/Train_knight.csv"
     assert 'test_knight.csv' in argv[2].lower(), \
            "usage: 2nd param path = **/Test_knight.csv"
+
 
 def voting_classifier(argv):
     df_train = pd.read_csv(argv[1])
