@@ -8,22 +8,22 @@ from matplotlib import pyplot as plt
 
 
 def assertions(argv):
-    assert len(sys.argv) == 3, "format: py Tree.py arg1 arg2"
+    assert len(argv) == 3, "format: py Tree.py arg1 arg2"
 
-    assert os.path.isfile(sys.argv[1]) is True, \
-           f" {sys.argv[1]} not found"
-    assert os.path.isfile(sys.argv[2]) is True, \
-           f" {sys.argv[1]} not found"
-    print(sys.argv[1])
-    assert 'train_knight.csv' in sys.argv[1].lower(), \
+    assert os.path.isfile(argv[1]) is True, \
+           f" {argv[1]} not found"
+    assert os.path.isfile(argv[2]) is True, \
+           f" {argv[2]} not found"
+    print(argv[1])
+    assert 'train_knight.csv' in argv[1].lower(), \
            "usage: 1st param path = **/Train_knight.csv"
-    assert 'test_knight.csv' in sys.argv[2].lower(), \
+    assert 'test_knight.csv' in argv[2].lower(), \
            "usage: 2nd param path = **/Test_knight.csv"
 
 
 def tree_classifier(argv):
-    df_train = pd.read_csv(sys.argv[1])
-    df_test = pd.read_csv(sys.argv[2])
+    df_train = pd.read_csv(argv[1])
+    df_test = pd.read_csv(argv[2])
 
     train_data = df_train.drop('knight', axis=1)
     result_data = df_train['knight']
