@@ -14,7 +14,7 @@ def assertions(argv):
     assert os.path.isfile(argv[1]) is True, \
            f" {argv[1]} not found"
     assert os.path.isfile(argv[2]) is True, \
-           f" {argv[1]} not found"
+           f" {argv[2]} not found"
     print(argv[1])
     assert 'train_knight.csv' in argv[1].lower(), \
            "usage: 1st param path = **/Train_knight.csv"
